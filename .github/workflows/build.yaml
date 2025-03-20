@@ -34,13 +34,19 @@ jobs:
       - name: Render PDF
         run: pnpm render
       - name: Bump version and push tag
+        id: tagBump
         if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message , '#tag' ) }}
         uses: anothrNick/github-tag-action@1.71.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEFAULT_BUMP: patch
+          DEFAULT_BRANCH: main
       - name: Release
         if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message , '#tag' ) && contains(github.event.head_commit.message , '#release' ) }}
-        uses: softprops/action-gh-release@v2
+        uses: ncipollo/release-action@v1
         with:
-          files: CV.pdf
+          allowUpdates: true
+          artifacts: CV.pdf
+          removeArtifacts: true
+          replacesArtifacts: true
+          tag: ${{steps.tagBump.outputs.new_tag}}
